@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "strings.h"
 
 str_size str_len (const char *string)
@@ -14,10 +15,14 @@ char *str_cat (char *destination, const char *source)
 {
     assert (destination);
     assert (source);
-    char *destination_end = destination + strlen (destination);
-    while (*source)
-        *destination_end++ = *source++;
-    *destination_end = '\0';
+
+    char *destination_end = destination + str_len (destination);
+    do
+    {
+        *destination_end++ = *source;
+    }
+    while (*source++);
+
     return destination;
 }
 
@@ -29,6 +34,7 @@ char *str_chr (const char *str, char c)
             return str;
         str++;
     }
+
     return 0;
 }
 
@@ -66,7 +72,7 @@ char *str_str (const char *string, const char *sample)
         if (j == sample_len)
         {
             free (prefix);
-            return string + i - j + 1;
+            return (char*)string + i - j + 1;
         }
     }
     free (prefix);
@@ -77,13 +83,16 @@ unsigned long int str_to_ul (const char *str, char **str_end, int base)
 {
     assert (2 <= base && base <= 36);
     assert (str);
-    char *cur_symb = str;
+
+    const char *cur_symb = str;
     unsigned long int ans = 0;
-    while (('0' <= *cur_symb && *cur_symb <= '0'+(base<10 ? base : 9)) ||
-           ('A' <= *cur_symb && *cur_symb < 'A'+base-10))
+
+    //check currect symbol on membership to number base
+    while (('0' <= *cur_symb && *cur_symb <= '0' + (base  <10 ? base : 9)) ||
+           ('A' <= *cur_symb && *cur_symb <= 'A' + base - 10))
     {
         int digit;
-        if (*cur_symb>='0' && *cur_symb<='9')
+        if (*cur_symb >= '0' && *cur_symb <= '9')
             digit = *cur_symb - '0';
         else
             digit = *cur_symb- 'A' + 10;
@@ -91,7 +100,10 @@ unsigned long int str_to_ul (const char *str, char **str_end, int base)
         cur_symb++;
     }
     if (str_end)
-        *str_end = cur_symb;
+    {
+        assert (*str_end);
+        *str_end = (char*)cur_symb;
+    }
     return ans;
 }
 
@@ -106,12 +118,14 @@ double str_to_d (const char *str, char **str_end)
     {
         if (*str == '-')
         {
-            assert (!is_minus);
+            if (is_minus)
+                break;
             is_minus = 1;
         }
         else if (*str == '.')
         {
-            assert (!is_fractional);
+            if (is_fractional)
+                break;
             is_fractional = 1;
         }
         else
@@ -127,7 +141,10 @@ double str_to_d (const char *str, char **str_end)
         str++;
     }
     if (str_end)
-        *str_end = str;
+    {
+        assert (*str_end);
+        *str_end = (char*)str;
+    }
     return is_minus ? -ans : ans;
 }
 
@@ -136,19 +153,23 @@ char *str_tok (char *str, const char *delimiters)
     static char *begin = 0;
     if (str)
         begin = str;
+
     assert (begin);
+
+    //skip all delimiters in the begin of the string
     while (str_chr (delimiters, *begin))
         begin++;
+    //finding end of token
     char *end = begin;
     while (*end && !str_chr(delimiters, *end))
         end++;
     char *ans = begin;
     if (*end)
     {
-        *(end) = '\0';
+        *end = '\0';
         begin = end+1;
     }
     else
-        begin = end;
+        begin = end; //end of the string - return empty string in the next function call
     return *ans ? ans : 0;
 }
