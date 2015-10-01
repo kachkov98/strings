@@ -1,3 +1,10 @@
+/*!
+ * @file main.c
+ * program calculates summary of numbers separated by space, comma, semicolon and ignore invalid parameters
+ * @brief simple demonstration of 'strings.h' functions
+ * @author Sergei Kachkov
+ */
+
 #include <stdio.h>
 #include "strings.h"
 
@@ -8,7 +15,7 @@ int main()
     char str[STRING_LENGTH];
     while (1)
     {
-        puts ("Input string: ");
+        puts ("Input string: (type 'exit' to complete the work) ");
         fgets (str, STRING_LENGTH, stdin);
 
         if (str_str (str, "exit"))
